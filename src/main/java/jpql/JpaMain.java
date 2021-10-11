@@ -13,18 +13,48 @@ public class JpaMain {
 
         try {
 
-            Member member = new Member();
-            member.setUsername("member1");
-            member.setAge(10);
-            em.persist(member);
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
 
-            Member result = em.createQuery("select m from Member m where m.username = :username", Member.class)
-                    .setParameter("username", "member1")
-                    .getSingleResult();
-            System.out.println("singleResult = " + result.getUsername());
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
+
+            Member member = new Member();
+            member.setUsername("회원1");
+            member.setAge(10);
+            member.setTeam(teamA);
+
+            Member member2 = new Member();
+            member2.setUsername("회원2");
+            member2.setAge(20);
+            member2.setTeam(teamA);
+
+            Member member3 = new Member();
+            member3.setUsername("회원3");
+            member3.setAge(30);
+            member3.setTeam(teamB);
+
+            em.persist(member);
+            em.persist(member2);
+            em.persist(member3);
+
+            em.flush();
+            em.clear();
+
+            String query = "select distinct t from Team t join t.members";
+            List<Team> result = em.createQuery(query, Team.class).getResultList();
+
+            for (Team s : result) {
+                System.out.println("team = " + s.getName() + " | " + s.getMembers().size());
+                for (Member sMember : s.getMembers()) {
+                    System.out.println("-> sMember = " + sMember);
+                }
+            }
 
             tx.commit();
-        }catch (Exception e) {
+        } catch (Exception e) {
             tx.rollback();
         } finally {
             em.close();
